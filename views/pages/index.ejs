@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <% include ../partials/header.ejs %>
+  </head>
+
+  <body>
+    <div id='map'></div>
+    <script>
+        var marker = null;
+        mapboxgl.accessToken = 'pk.eyJ1Ijoiam1hcmNlbG9janIiLCJhIjoiY2ptcGJyajFtMDA0NDNwcW9hMWQwYjZkdSJ9.BUCGAhMM-5_5CB-uPyq_jw';
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v10'
+        });
+
+        map.on('load', () => {
+            updateLocation();
+            setInterval(updateLocation, 30 * 1000);
+        })
+
+        let updateLocation = () => {
+            $.ajax({
+                url:"https://openwhisk.ng.bluemix.net/api/v1/namespaces/jmarcelo.cjr%40gmail.com_dev/actions/Get%20Last%20Location?blocking=true",
+                type: "POST",
+                headers: {
+                    'Authorization': 'Basic ZWNhNzE0NmEtNjM5Ny00ZTdiLTg2Y2YtZjFjMzMxOGRlMWY1OmFlZUtpeUpLMW5HYVFWZTJHWGlNWGw3dkNIVW9yRGRDSnNGU2hlRWVCZVZ5c2xUQ1I4cXpGbFVqNmdqdDlnWEU=',
+                    'Content-Type': 'application/json'
+                },
+                dataType: 'JSON',
+                success: data => {
+                    let coordinates = data.response.result;
+                    
+                    if (marker == null){
+                        marker = new mapboxgl.Marker();
+                    }
+
+                    marker.setLngLat([coordinates.longitude, coordinates.latitude]).addTo(map);
+
+                    let lngLat = new mapboxgl.LngLat(coordinates.longitude, coordinates.latitude);
+                    map.easeTo({center: lngLat, zoom: 13});
+                }
+            });
+        };
+    </script>
+  </body>
+</html>
